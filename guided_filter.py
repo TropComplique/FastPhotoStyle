@@ -13,7 +13,7 @@ from cv2.ximgproc import guidedFilter
 class GIFSmoothing(nn.Module):
     def forward(self, *input):
         pass
-        
+
     def __init__(self, r, eps):
         super(GIFSmoothing, self).__init__()
         self.r = r
@@ -43,4 +43,3 @@ class GIFSmoothing(nn.Module):
         output_img = cv2.cvtColor(output_img, cv2.COLOR_BGR2RGB)
         output_img = Image.fromarray(output_img)
         return output_img
-
