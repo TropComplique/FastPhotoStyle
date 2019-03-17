@@ -1,5 +1,7 @@
 import numpy as np
+import cv2
 import scipy.sparse
+import scipy.sparse.linalg
 
 
 def photorealistic_smoothing(X, Y, lambda_weight=1e-4):
@@ -27,7 +29,7 @@ def photorealistic_smoothing(X, Y, lambda_weight=1e-4):
     W = compute_laplacian(X)
     W = W.tocsc()  # shape [N, N]
     d = W.sum(0).A.squeeze(0)  # shape [N]
-    d = np.pow(d, -0.5)
+    d = np.power(d, -0.5)
     D = scipy.sparse.csc_matrix((d, (np.arange(0, N), np.arange(0, N))), shape=(N, N))
     S = D.dot(W).dot(D)
 
@@ -47,7 +49,7 @@ def photorealistic_smoothing(X, Y, lambda_weight=1e-4):
     R = R.reshape(h, w, c)
     R = R[2:(h - 2), 2:(w - 2)]
 
-    R = 255.0 * np.clip(V, 0.0, 1.0)
+    R = 255.0 * np.clip(R, 0.0, 1.0)
     R = R.astype('uint8')
     return R
 
@@ -66,7 +68,7 @@ def compute_laplacian(image, epsilon=1e-7, size=3):
         Where N = h * w (the number of pixels).
     """
     area = size * size
-    h, w, _ = image.shape
+    h, w, c = image.shape
 
     windows, indices = get_patches(image, size)
     # they have shapes [p, q, area, c] and [p, q, area].
