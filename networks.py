@@ -57,7 +57,8 @@ class VGGEncoder(nn.Module):
     def forward(self, x, level=4):
         """
         Arguments:
-            x: a float tensor with shape [b, 3, h, w].
+            x: a float tensor with shape [b, 3, height, width].
+                It represents RGB images with pixel values in [0, 1] range.
             level: an integer, possible values are [1, 2, 3, 4].
         Returns:
             features: a dict with float tensors.
@@ -202,7 +203,8 @@ class VGGDecoder(nn.Module):
             x: a float tensor with shape [b, c, h, w].
             pooling_indices: a dict with tuples (long tensor, shape).
         Returns:
-            a float tensors.
+            a float tensor with shape [b, 3, height, width].
+            It represents RGB images with pixel values in [0, 1] range.
         """
 
         if self.level > 3:
