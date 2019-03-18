@@ -1,4 +1,5 @@
 import torch
+import cv2
 import numpy as np
 from PIL import Image
 from cupy.cuda import function
@@ -7,7 +8,7 @@ from collections import namedtuple
 
 
 with open('cuda_utils.cu', 'r') as f:
-    SOURCE = content_file.read()
+    SOURCE = f.read()
 
 
 def smooth_local_affine(output_cpu, input_cpu, epsilon, patch, h, w, f_r, f_e):
@@ -76,12 +77,12 @@ def secondary_smoothing(Y, content, f_radius=15, f_edge=1e-1):
         a numpy uint8 array with shape [h, w, 3].
     """
 
-    Y = Y.astype('float32')
+    Y = Y.astype('float32')[:, :, ::-1]
     h, w, c = Y.shape
     Y = Y.transpose((2, 0, 1))
 
     content = cv2.resize(content, (w, h))
-    content = content.astype('float32')
+    content = content.astype('float32')[:, :, ::-1]
     content = content.transpose((2, 0, 1))
 
     input_ = np.ascontiguousarray(content) / 255.0

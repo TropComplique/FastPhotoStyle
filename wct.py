@@ -9,14 +9,15 @@ def wct(content, style):
     Returns:
         a float tensor with shape [d, h * w].
     """
-
-    _, area = content.size()
+    
+    d, area = content.size()
     # area is equal to h * w
 
     mean = torch.mean(content, 1, keepdim=True)  # shape [d, 1]
     content -= mean
 
-    covariance = torch.mm(content, content.t()).div(area - 1) + torch.eye(c)  # shape [d, d]
+    eye = torch.eye(d, device=content.device)
+    covariance = torch.mm(content, content.t()).div(area - 1) + eye  # shape [d, d]
     _, D_c, E_c = torch.svd(covariance, some=False)
     # they have shapes [d] and [d, d]
 
