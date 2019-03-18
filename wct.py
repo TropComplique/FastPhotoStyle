@@ -4,14 +4,16 @@ import torch
 def wct(content, style):
     """
     Arguments:
-        content: a float tensor with shape [d, h * w].
-        style: a float tensor with shape [d, h' * w'].
+        content: a float tensor with shape [1, d, h, w].
+        style: a float tensor with shape [1, d, h_s, w_s].
     Returns:
-        a float tensor with shape [d, h * w].
+        a float tensor with shape [1, d, h, w].
     """
-    
-    d, area = content.size()
-    # area is equal to h * w
+    _, d, h, w = content.size()
+
+    area = h * w
+    content = content.view(d, area)
+    style = style.view(d, -1)
 
     mean = torch.mean(content, 1, keepdim=True)  # shape [d, 1]
     content -= mean
@@ -33,7 +35,7 @@ def wct(content, style):
     style -= mean
 
     _, area = style.size()
-    # area is equal to h' * w'
+    # area is equal to h_s * w_s
 
     covariance = torch.mm(style, style.t()).div(area - 1)
     _, D_s, E_s = torch.svd(covariance, some=False)
@@ -48,4 +50,5 @@ def wct(content, style):
     colored_content = torch.mm(x, whitened_content)  # shape [d, h * w]
     colored_content += mean
 
+    colored_content = colored_content.view(1, d, h, w)
     return colored_content

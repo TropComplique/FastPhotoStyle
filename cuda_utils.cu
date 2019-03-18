@@ -4,7 +4,9 @@
 
 
 __device__ bool InverseMat4x4(double m_in[4][4], double inv_out[4][4]) {
+
     double m[16], inv[16];
+
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             m[i * 4 + j] = m_in[i][j];
@@ -230,7 +232,7 @@ __global__ void best_local_affine_kernel(
             }
         }
     }
-    return ;
+    return;
 }
 
 
@@ -281,38 +283,38 @@ __global__ void bilateral_smooth_kernel(
             }
         }
     }
-    return ;
+    return;
 }
 
 
 extern "C"
 __global__ void reconstruction_best_kernel(
-    float *input, float *filtered_affine_model, float *filtered_best_output,
-    int h, int w
+    float *input, float *filtered_affine_model,
+    float *filtered_best_output, int h, int w
 )
 {
     int id = blockIdx.x * blockDim.x + threadIdx.x;
     int size = h * w;
     if (id < size) {
         double out1 =
-            input[id + 2*size] * filtered_affine_model[id*12 + 0] + // A[0][0] +
-            input[id + size]   * filtered_affine_model[id*12 + 1] + // A[0][1] +
-            input[id]          * filtered_affine_model[id*12 + 2] + // A[0][2] +
-                                 filtered_affine_model[id*12 + 3]; //A[0][3];
+            input[id + 2*size] * filtered_affine_model[id*12 + 0] +
+            input[id + size]   * filtered_affine_model[id*12 + 1] +
+            input[id]          * filtered_affine_model[id*12 + 2] +
+                                 filtered_affine_model[id*12 + 3];
         double out2 =
-            input[id + 2*size] * filtered_affine_model[id*12 + 4] + //A[1][0] +
-            input[id + size]   * filtered_affine_model[id*12 + 5] + //A[1][1] +
-            input[id]          * filtered_affine_model[id*12 + 6] + //A[1][2] +
-                                 filtered_affine_model[id*12 + 7]; //A[1][3];
+            input[id + 2*size] * filtered_affine_model[id*12 + 4] +
+            input[id + size]   * filtered_affine_model[id*12 + 5] +
+            input[id]          * filtered_affine_model[id*12 + 6] +
+                                 filtered_affine_model[id*12 + 7];
         double out3 =
-            input[id + 2*size] * filtered_affine_model[id*12 + 8] + //A[2][0] +
-            input[id + size]   * filtered_affine_model[id*12 + 9] + //A[2][1] +
-            input[id]          * filtered_affine_model[id*12 + 10] + //A[2][2] +
-                                 filtered_affine_model[id*12 + 11]; // A[2][3];
+            input[id + 2*size] * filtered_affine_model[id*12 + 8] +
+            input[id + size]   * filtered_affine_model[id*12 + 9] +
+            input[id]          * filtered_affine_model[id*12 + 10] +
+                                 filtered_affine_model[id*12 + 11];
 
         filtered_best_output[id] = out1;
         filtered_best_output[id + size] = out2;
         filtered_best_output[id + 2*size] = out3;
     }
-    return ;
+    return;
 }

@@ -88,7 +88,8 @@ def secondary_smoothing(Y, content, f_radius=15, f_edge=1e-1):
     input_ = np.ascontiguousarray(content) / 255.0
     output_ = np.ascontiguousarray(Y) / 255.0
 
-    best_ = smooth_local_affine(output_, input_, 1e-7, 3, h, w, f_radius, f_edge)
-    best_ = best_.transpose(1, 2, 0)
-    result = np.clip(best_ * 255.0, 0, 255.0).astype('uint8')
-    return result
+    x = smooth_local_affine(output_, input_, 1e-7, 3, h, w, f_radius, f_edge)
+    x = x.transpose(1, 2, 0)
+    x = np.clip(x, 0.0, 1.0)
+    x *= 255.0
+    return x.astype('uint8')
