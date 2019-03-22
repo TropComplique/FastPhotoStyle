@@ -7,22 +7,16 @@ import scipy.sparse.linalg
 def photorealistic_smoothing(X, Y, lambda_weight=1e-4):
     """
     Arguments:
-        X: a numpy uint8 array with shape [h, w, c].
-        Y: a numpy uint8 array with shape [h', w', c].
+        X, Y: numpy uint8 arrays with shape [h, w, c].
         lambda_weight: a float number.
     Returns:
-        a numpy uint8 array with shape [h - 4, w - 4, c].
+        a numpy uint8 array with shape [h, w, c].
     """
     h, w, c = Y.shape
     assert c == 3
 
-    Y = Y[2:(h - 2), 2:(w - 2)]
-    Y = np.pad(Y, pad_width=((2, 2), (2, 2), (0, 0)), mode='edge')
     Y = np.reshape(Y, [h * w, c])
     Y = Y.astype('float64')/255.0  # shape [h * w, c]
-
-    X = cv2.resize(X, (w - 4, h - 4))
-    X = np.pad(X, pad_width=((2, 2), (2, 2), (0, 0)), mode='edge')
     X = X.astype('float64')/255.0  # shape [h, w, c]
 
     N = h * w  # the number of pixels
@@ -47,7 +41,6 @@ def photorealistic_smoothing(X, Y, lambda_weight=1e-4):
 
     R *= (1 - alpha)
     R = R.reshape(h, w, c)
-    R = R[2:(h - 2), 2:(w - 2)]
 
     R = 255.0 * np.clip(R, 0.0, 1.0)
     R = R.astype('uint8')
@@ -58,6 +51,12 @@ def compute_laplacian(image, epsilon=1e-7, size=3):
     """
     This function computes the matting Laplacian from
     paper "A Closed Form Solution to Natural Image Matting".
+
+    Well, to be more precise,
+    the matting affinity matrix is returned.
+
+    It is taken from here:
+    https://github.com/MarcoForte/closed-form-matting
 
     Arguments:
         image: a numpy double array with shape [h, w, c].
@@ -80,12 +79,13 @@ def compute_laplacian(image, epsilon=1e-7, size=3):
     mean = np.mean(windows, axis=2, keepdims=True)  # shape [p, q, 1, c]
     windows -= mean
 
-    var = np.einsum('...ji,...jk->...ik', windows, windows)/area
+    windows_T = np.transpose(windows, (0, 1, 3, 2))  # shape [p, q, c, area]
+    var = np.matmul(windows_T, windows)/area
     # it has shape [p, q, c, c]
 
     x = np.linalg.inv(var + (epsilon/area) * np.eye(c))  # shape [p, q, c, c]
-    x = np.einsum('...ij,...jk->...ik', windows, x)  # shape [p, q, area, c]
-    x = np.einsum('...ij,...kj->...ik', x, windows)  # shape [p, q, area, area]
+    x = np.matmul(windows, x)  # shape [p, q, area, c]
+    x = np.matmul(x, windows_T)  # shape [p, q, area, area]
     x = (1/area)*(1 + x)
 
     row = np.tile(np.expand_dims(indices, 3), (1, 1, 1, area))  # shape [p, q, area, area]
